@@ -64,17 +64,7 @@ def mutacion_complemento(
         pmi: float,
         pmg: float
 ) -> np.ndarray:
-    """
-    Aplica mutación siguiendo los criterios PMI y PMG.
 
-    Args:
-        poblacion: Población binaria
-        pmi: Porcentaje de mutación del individuo
-        pmg: Porcentaje de mutación del gen
-
-    Returns:
-        Población mutada
-    """
     poblacion_mutada = poblacion.copy()
     tam_poblacion, longitud_individuo = poblacion.shape
 
@@ -96,17 +86,7 @@ def poda_aleatoria_conservando_mejor(
         fitness: np.ndarray,
         tamano_nueva_poblacion: int
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Elimina individuos aleatoriamente, conservando al mejor.
 
-    Args:
-        poblacion: Población binaria
-        fitness: Valores de fitness de la población
-        tamano_nueva_poblacion: Tamaño deseado de la nueva población
-
-    Returns:
-        Nueva población y sus valores de fitness
-    """
     if len(poblacion) <= tamano_nueva_poblacion:
         return poblacion, fitness
 

@@ -8,9 +8,8 @@ from genetico.operadores import (
     mutacion_complemento,
     poda_aleatoria_conservando_mejor
 )
-from genetico.codificacion import (
-    calcular_bits_necesarios,
-    inicializar_poblacion_binaria,
+from genetico.utils import (
+    contar_bits_valor_real,
     binario_a_real
 )
 
@@ -53,10 +52,10 @@ class AlgoritmoGenetico:
         self.factor_crecimiento = factor_crecimiento
 
         # Calcular bits necesarios
-        self.bits = calcular_bits_necesarios(rango_min, rango_max, precision)
+        self.bits = contar_bits_valor_real(rango_min, rango_max, precision)
 
         # Crear población inicial
-        self.poblacion = inicializar_poblacion_binaria(tamano_poblacion, self.bits)
+        self.poblacion = np.random.randint(2, size=(tamano_poblacion, self.bits))
 
         # Historial para graficar
         self.mejor_fitness_historico = []
@@ -237,6 +236,15 @@ class AlgoritmoGenetico:
         Returns:
             Diccionario con estadísticas
         """
+        mejor_valor_real = None
+        if self.mejor_solucion is not None:
+            mejor_valor_real = binario_a_real(
+                self.mejor_solucion,
+                self.rango_min,
+                self.rango_max,
+                self.bits
+            )
+
         return {
             'mejor_fitness_historico': self.mejor_fitness_historico,
             'fitness_promedio_historico': self.fitness_promedio_historico,
@@ -244,10 +252,5 @@ class AlgoritmoGenetico:
             'generacion_actual': self.generacion_actual,
             'mejor_solucion_binaria': self.mejor_solucion,
             'mejor_fitness': self.mejor_fitness,
-            'mejor_valor_real': binario_a_real(
-                self.mejor_solucion,
-                self.rango_min,
-                self.rango_max,
-                self.bits
-            ) if self.mejor_solucion is not None else None
+            'mejor_valor_real': mejor_valor_real
         }

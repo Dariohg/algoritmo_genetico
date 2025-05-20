@@ -142,54 +142,68 @@ class AplicacionAG(tk.Tk):
         """Añade un mensaje al log de ejecución."""
         self.log_text.insert(tk.END, mensaje + "\n")
         self.log_text.see(tk.END)
+        # Forzar actualización de la interfaz
+        self.update_idletasks()
 
     def actualizar_graficos(self):
         """Actualiza los gráficos de la aplicación."""
-        # Limpiar frames
-        for widget in self.evolucion_frame.winfo_children():
-            widget.destroy()
+        try:
+            # Limpiar frames
+            for widget in self.evolucion_frame.winfo_children():
+                widget.destroy()
 
-        for widget in self.funcion_frame.winfo_children():
-            widget.destroy()
+            for widget in self.funcion_frame.winfo_children():
+                widget.destroy()
 
-        # Obtener estadísticas
-        stats = self.algoritmo.obtener_estadisticas()
+            # Obtener estadísticas
+            stats = self.algoritmo.obtener_estadisticas()
 
-        # Gráfico de evolución
-        if stats['generacion_actual'] > 0:
-            fig_evolucion = graficar_evolucion(
-                stats['mejor_fitness_historico'],
-                stats['fitness_promedio_historico']
+            # Gráfico de evolución
+            if stats['generacion_actual'] > 0:
+                fig_evolucion = graficar_evolucion(
+                    stats['mejor_fitness_historico'],
+                    stats['fitness_promedio_historico']
+                )
+
+                canvas_evolucion = FigureCanvasTkAgg(fig_evolucion, self.evolucion_frame)
+                canvas_evolucion.draw()
+                canvas_evolucion.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            else:
+                # Mostrar mensaje cuando no hay datos
+                label = ttk.Label(self.evolucion_frame, text="No hay datos de evolución disponibles")
+                label.pack(pady=50)
+
+            # Gráfico de función
+            fig_funcion = graficar_funcion(
+                funcion_objetivo,
+                self.algoritmo.rango_min,
+                self.algoritmo.rango_max,
+                stats['mejor_valor_real']
             )
 
-            canvas_evolucion = FigureCanvasTkAgg(fig_evolucion, self.evolucion_frame)
-            canvas_evolucion.draw()
-            canvas_evolucion.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            canvas_funcion = FigureCanvasTkAgg(fig_funcion, self.funcion_frame)
+            canvas_funcion.draw()
+            canvas_funcion.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        # Gráfico de función
-        fig_funcion = graficar_funcion(
-            funcion_objetivo,
-            self.algoritmo.rango_min,
-            self.algoritmo.rango_max,
-            stats['mejor_valor_real']
-        )
+            # Actualizar etiquetas de información
+            self.generacion_label.config(text=str(stats['generacion_actual']))
 
-        canvas_funcion = FigureCanvasTkAgg(fig_funcion, self.funcion_frame)
-        canvas_funcion.draw()
-        canvas_funcion.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+            if stats['mejor_fitness'] != -np.inf and stats['mejor_fitness'] is not None:
+                self.mejor_fitness_label.config(text=f"{stats['mejor_fitness']:.6f}")
+            else:
+                self.mejor_fitness_label.config(text="-")
 
-        # Actualizar etiquetas de información
-        self.generacion_label.config(text=str(stats['generacion_actual']))
+            if stats['mejor_valor_real'] is not None:
+                self.mejor_solucion_label.config(text=f"{stats['mejor_valor_real']:.6f}")
+            else:
+                self.mejor_solucion_label.config(text="-")
 
-        if stats['mejor_fitness'] != -np.inf:
-            self.mejor_fitness_label.config(text=f"{stats['mejor_fitness']:.6f}")
-        else:
-            self.mejor_fitness_label.config(text="-")
+            # Forzar actualización de la interfaz
+            self.update_idletasks()
 
-        if stats['mejor_valor_real'] is not None:
-            self.mejor_solucion_label.config(text=f"{stats['mejor_valor_real']:.6f}")
-        else:
-            self.mejor_solucion_label.config(text="-")
+        except Exception as e:
+            print(f"Error al actualizar gráficos: {e}")
+            self.log(f"Error al actualizar gráficos: {e}")
 
     def inicializar(self):
         """Inicializa el algoritmo genético con los parámetros actuales."""
@@ -223,6 +237,9 @@ class AplicacionAG(tk.Tk):
 
         except ValueError as e:
             messagebox.showerror("Error", f"Parámetros inválidos: {str(e)}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error inesperado: {str(e)}")
+            print(f"Error: {e}")
 
     def paso(self):
         """Ejecuta un paso de evolución."""
@@ -236,6 +253,7 @@ class AplicacionAG(tk.Tk):
 
         except Exception as e:
             messagebox.showerror("Error", f"Error al ejecutar paso: {str(e)}")
+            print(f"Error en paso: {e}")
 
     def evolucionar(self):
         """Evoluciona el algoritmo hasta el máximo de generaciones."""
@@ -260,6 +278,7 @@ class AplicacionAG(tk.Tk):
 
         except Exception as e:
             messagebox.showerror("Error", f"Error al evolucionar: {str(e)}")
+            print(f"Error al evolucionar: {e}")
 
     def mostrar_resultado(self):
         """Muestra los resultados del algoritmo."""
@@ -288,5 +307,9 @@ class AplicacionAG(tk.Tk):
 
 
 if __name__ == "__main__":
-    app = AplicacionAG()
-    app.mainloop()
+    try:
+        app = AplicacionAG()
+        print("Aplicación creada. Iniciando mainloop...")
+        app.mainloop()
+    except Exception as e:
+        print(f"Error al iniciar la aplicación: {e}")
